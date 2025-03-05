@@ -2,3 +2,7 @@
 __pycache__
 raw data
 *.toml
+*.html
+*.json
+*_files
+

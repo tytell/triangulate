@@ -1,0 +1,55 @@
+---
+title: "Calibrate from Charuco videos"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+
+```{python}
+import os
+import numpy as np
+import pandas as pd
+import plotly.express as px
+```
+
+
+```{python}
+parameterfile = "calibrate.yml"
+
+import yaml
+with open(parameterfile, 'r') as f:
+    cfg = yaml.safe_load(f)
+```
+
+## Load parameters
+
+**Parameter File:** `{python} os.path.abspath(parameterfile)`
+
+```{python}
+from IPython.display import Markdown
+from tabulate import tabulate
+
+tab = []
+for k,v in cfg.items():
+  tab.append([k, v])
+
+Markdown(tabulate(tab,
+  headers=["Parameter", "Value"]
+))
+```
+
+# Run calibration
+
+
+```{python}
+from label3d.calibrate_charuco import do_calibration
+
+pts = do_calibration(cfg)
+```
+
+
+```{python}
+pts
+```
