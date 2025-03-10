@@ -37,6 +37,14 @@ def add_reprojected_points(pts, camgroup):
 
     pts = pd.concat((pts, reproj), axis=1)
 
+    for cam1 in camgroup.get_names():
+        detect1 = pts.loc[:, (cam1, ('x', 'y'))].to_numpy()
+        reproj1 = pts.loc[:, (cam1, ('xr', 'yr'))].to_numpy()
+
+        err = np.linalg.norm(reproj1 - detect1, axis=1)
+
+        pts[(cam1, "err")] = pd.Series(err, index=pts.index)
+
     return pts
 
 
