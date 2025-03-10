@@ -16,7 +16,7 @@ import plotly.express as px
 
 
 ```{python}
-parameterfile = "calibrate.yml"
+parameterfile = "triangulate.yml"
 
 import yaml
 with open(parameterfile, 'r') as f:
@@ -46,10 +46,61 @@ Markdown(tabulate(tab,
 ```{python}
 from label3d.calibrate_charuco import do_calibration
 
-pts = do_calibration(cfg)
+pts, camgroup = do_calibration(cfg)
 ```
 
+```{python}
+from label3d.reproject import add_reprojected_points
+
+pts = add_reprojected_points(pts, camgroup)
+```
+
+**Calibration output File:** `{python} os.path.join(cfg['base_path'], cfg['calibration_file'])`
+
+
+# Show diagnositcs
+
+
+## Overall error statistics
 
 ```{python}
-pts
+ptsf = pts.loc[:, (cfg["camera_names"], slice(None))].stack(level=0).reset_index()
+```
+
+Check that one camera isn't dramatically different than the other(s)
+
+```{python}
+#| tbl-cap: Error statistics for each camera
+
+ptsf.groupby("camera")["err"].describe()
+```
+
+```{python}
+#| fig-cap: "Histograms of the reprojection errors for each camera"
+
+px.histogram(ptsf, x="err", facet_row="camera",
+        labels={"err": "Reprojection error (pixels)"})
+```
+
+## Error statistics by location
+
+The size of the error should be fairly uniform across the field.
+
+```{python}
+#| fig-cap: "Distribution of the reprojection error across the images"
+
+binsize = 50
+
+xrng = np.max(ptsf["x"]) - np.min(ptsf["x"])
+yrng = np.max(ptsf["y"]) - np.min(ptsf["y"])
+
+nbinsx = np.floor(xrng / binsize)
+nbinsy = np.floor(yrng / binsize)
+
+fig = px.density_heatmap(ptsf, x="x", y="y", z="err", histfunc="avg", facet_row="camera",
+              nbinsx=int(nbinsx), nbinsy=int(nbinsy),
+              labels={"x": "x (pix)",
+                      "y": "y (pix)",
+                      "err": "Error (pix)"})
+fig.show()
 ```
