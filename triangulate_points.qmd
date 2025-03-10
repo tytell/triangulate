@@ -1,0 +1,138 @@
+---
+title: "Triangulate points from multiple videos"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+
+```{python}
+import os
+import numpy as np
+import pandas as pd
+import aniposelib
+import plotly.express as px
+```
+
+
+```{python}
+parameterfile = "triangulate.yml"
+
+import yaml
+with open(parameterfile, 'r') as f:
+    cfg = yaml.safe_load(f)
+```
+
+## Load parameters
+
+**Parameter File:** `{python} os.path.abspath(parameterfile)`
+
+```{python}
+from IPython.display import Markdown
+from tabulate import tabulate
+
+tab = []
+for k,v in cfg.items():
+  tab.append([k, v])
+
+Markdown(tabulate(tab,
+  headers=["Parameter", "Value"]
+))
+```
+
+# Load calibration
+
+
+```{python}
+camgroup = aniposelib.cameras.CameraGroup.load(cfg["calibration_file"])
+```
+
+
+**Calibration File:** `{python} os.path.join(cfg['base_path'], cfg['calibration_file'])`
+
+# Match points from trials
+
+```{python}
+points_files = pd.read_csv(os.path.join(cfg['base_path'], cfg["points_files_list"]))
+```
+
+Double check that the number of cameras from the calibration matches up with the number of cameras in the points file.
+```{python}
+assert points_files.shape[1] == len(camgroup.get_names())+1, \
+    f"Number of cameras from calibration ({len(camgroup.get_names())}) doesn't match number of cameras in points file ({points_files.shape[1]-1})"
+```
+
+
+```{python}
+points_files
+```
+
+
+## Load in the points
+
+```{python}
+from label3d.triangulate import reorganize_sleap_csv
+
+data = []
+trials = []
+for idx, row in points_files.iterrows():
+    print(row)
+
+    trials.append(row.iloc[0])
+
+    camdata = []
+    for f in row.iloc[1:]:
+        fn = os.path.join(cfg['base_path'], cfg['points_files_path'], f)
+        data1 = pd.read_csv(fn)
+        data1 = reorganize_sleap_csv(data1)
+        camdata.append(data1)
+
+    # join up the different camera data by concat across columns
+    camdata = pd.concat(camdata, axis = 1, 
+                    keys = camgroup.get_names(), 
+                    names = ['camera', 'var'])
+    
+    data.append(camdata)
+
+# then join the different trials by concat across rows
+data = pd.concat(data, axis=0, keys=trials, names=['trial'])
+```
+
+
+```{python}
+from label3d.triangulate import triangulate_points
+
+data3d = triangulate_points(camgroup, data)
+```
+
+
+```{python}
+data3d.head()
+```
+
+
+
+```{python}
+ptsf = data3d.loc[:, (cfg["camera_names"], slice(None))].stack(level=0).reset_index()
+```
+
+
+```{python}
+#| tbl-cap: Error statistics for each camera
+
+ptsf.groupby("camera")["err"].describe()
+```
+
+```{python}
+#| tbl-cap: Error statistics for each point. Ordered by mean error
+
+ptsf.groupby("point")["err"].describe().sort_values('mean', axis=0)
+```
+
+```{python}
+#| fig-cap: "Histograms of the reprojection errors for each camera"
+
+px.histogram(ptsf, x="err", facet_row="camera",
+        labels={"err": "Reprojection error (pixels)"})
+```
