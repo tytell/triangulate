@@ -100,6 +100,8 @@ data = pd.concat(data, axis=0, keys=trials, names=['trial'])
 ```
 
 
+## Triangulate
+
 ```{python}
 from label3d.triangulate import triangulate_points
 
@@ -107,14 +109,17 @@ data3d = triangulate_points(camgroup, data)
 ```
 
 
+Just the first few rows of the triangulated results.
+
 ```{python}
 data3d.head()
 ```
 
 
+## Error statistics
 
 ```{python}
-ptsf = data3d.loc[:, (cfg["camera_names"], slice(None))].stack(level=0).reset_index()
+ptsf = data3d.loc[:, (cfg["camera_names"], slice(None))].stack(level=0, future_stack=True).reset_index()
 ```
 
 
@@ -136,3 +141,68 @@ ptsf.groupby("point")["err"].describe().sort_values('mean', axis=0)
 px.histogram(ptsf, x="err", facet_row="camera",
         labels={"err": "Reprojection error (pixels)"})
 ```
+
+
+## Flag points and frames as potential outliers
+
+```{python}
+highcutoff = 50
+lowcutoff = 10
+```
+
+Looking for points with errors > `{python} cutoff` pixels.
+
+
+```{python}
+err = data3d.loc[:, (camgroup.get_names(), "err")]
+iserr = err > highcutoff
+iserr = iserr.any(axis=1)
+
+err = err.loc[iserr, slice(None)]
+err.loc[:, ('all', 'maxerr')] = err.max(axis=1)
+```
+
+```{python}
+#| tbl-cap: List of points and frames with high reprojection error
+
+err.sort_values(by=[('all', 'maxerr')], ascending=False)
+```
+
+# Plot samples in 3D
+
+```{python}
+ngoodframes = 2
+nbadframes = 10
+```
+
+```{python}
+err = data3d.loc[:, (camgroup.get_names(), "err")]
+good = err < lowcutoff
+ngood = good.all(axis=1).groupby(['trial', 'frame_idx']).agg(["sum", "count"])
+ngood.loc[:, "frac"] = ngood["sum"] / ngood["count"]
+
+ngood = ngood.sort_values(by="frac", ascending=False)
+```
+
+
+```{python}
+bestquart = ngood.head(n = int(0.25*ngood.shape[0]))
+worstquart = ngood.tail(n = int(0.25*ngood.shape[0]))
+
+showgoodframes = bestquart.sample(n = ngoodframes)
+```
+
+
+```{python}
+figs = []
+
+for r in showgoodframes.iterrows():
+    print(r[0])
+    plt1 = data3d.loc[(*r[0], slice(None)), slice(None)].xs("3D", axis=1, level="camera").reset_index()
+
+    fig1 = px.scatter_3d(plt1, x='x', y='y', z='z', color='point')
+    figs.append(fig1)
+
+subplots()
+```
+
