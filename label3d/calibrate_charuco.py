@@ -61,11 +61,10 @@ def do_calibration(args, verbose=True, debug=True, ndebugimages=10):
 
     pts = pd.concat(pts, axis=1)
     
-    pts = add_reprojected_points(pts, camgroup)
-                            
+    print(f"Saved calibration to {calib_file}")
     camgroup.dump(calib_file)
 
-    return pts
+    return pts, camgroup
 
 
 def save_detected_points(args, pts):
@@ -118,3 +117,35 @@ def generate_debug_images(args, pts):
                 outname1 = os.path.join(pn, '{0}-debug-{1:03d}.png'.format(fn, fr))
                 plt.savefig(outname1)
                 plt.close(fig)
+
+
+def refine_calibration(camgroup, pts, max_err, nodes='all', outfile=None):
+    npt = pts.shape[0]
+    good = ~pts.loc[:,(slice(None), ['x', 'y'])].isna().any(axis=1)
+    pts = pts.loc[good, :]
+    print(f'{pts.shape[0]}/{npt} points visible in all cameras')
+
+    if nodes != 'all':
+        pts = pts.loc[(slice(None), slice(None), nodes), :]
+        print('{}/{} ({:2.0f}%) points in selected nodes'.format(pts.shape[0], npt, np.round(pts.shape[0]/npt*100)))
+
+    good = pts.loc[:, (slice(None), 'err')].max(axis=1, skipna=False) < max_err
+
+    pts = pts.loc[good, (camgroup.get_names(), ['x', 'y'])]
+    print('{}/{} ({:2.0f}%) points below maximum error'.format(pts.shape[0], npt, np.round(pts.shape[0]/npt*100)))
+
+    calibpts = pts.to_numpy(dtype=float)
+    calibpts = np.reshape(calibpts, [-1, 3, 2]).transpose((1, 0, 2))
+
+    camgroup1 = deepcopy(camgroup)
+    camgroup1.bundle_adjust_iter(calibpts, extra=None,
+                            n_iters=6, start_mu=15, end_mu=1,
+                            max_nfev=200, ftol=1e-4,
+                            n_samp_iter=200, n_samp_full=1000,
+                            error_threshold=0.3, only_extrinsics=False,
+                            verbose=True)    
+
+    if outfile is not None:
+        camgroup1.dump(outfile)
+
+    return camgroup1
