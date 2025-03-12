@@ -49,7 +49,12 @@ def get_basis(axesdata, order_axes='length', make_right_handed=True):
     # this reorders the columns in alphabetical order
     R = R.reindex(columns=R.columns.sort_values())
 
-    return origin, R
+    R.index = pd.Index(['x', 'y', 'z'])
+    origindf = origin.to_frame().T
+    origindf.index = pd.Index(['origin'])
+    origindf.columns = R.columns
+
+    return pd.concat((origindf, R))
 
 def gram_schmidt(A):
     """Orthogonalize a set of vectors stored as the columns of matrix A."""
@@ -127,12 +132,15 @@ def rename_columns(df, columns, inplace=False):
         df_new.columns = columns_new
         return df_new
 
-def rotate_axes(data, origin, R):
+def rotate_axes(data, basis):
     data3d = data.loc[:, ('3D', ['x', 'y', 'z'])]
 
     data_rot = rename_columns(data, {('3D', 'x'): ('3D', 'x0'),
                                        ('3D', 'y'): ('3D', 'y0'),
                                        ('3D', 'z'): ('3D', 'z0')})
+    
+    origin = basis.loc['origin', :]
+    R = basis.loc[['x', 'y', 'z'], :]
     
     data3d_r = (data3d.to_numpy() - origin.values) @ R
 

@@ -22,6 +22,15 @@ board_points_file: charuco_points.csv
 
 calibration_file: calibration.toml
 
+# Axes setup
+axes_files_path: raw data
+axes_files:
+  - labels.000_AxesPostCalib_LateralOrtho.analysis.csv 
+  - labels.001_AxesPostCalib_LateralOffAxis.analysis.csv
+axes_output: axes.csv
+
 # Video trials for triangulation
-points_files_list: points_files_list.csv
 points_files_path: raw data
+points_files_list: points_files_list.csv
+
+output_file: points3d.csv

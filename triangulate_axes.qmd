@@ -1,0 +1,161 @@
+---
+title: "Triangulate axes points to define main axes"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+
+```{python}
+import os
+import numpy as np
+import pandas as pd
+import aniposelib
+import plotly.express as px
+import plotly.graph_objects as go
+```
+
+
+```{python}
+parameterfile = "triangulate.yml"
+
+import yaml
+with open(parameterfile, 'r') as f:
+    cfg = yaml.safe_load(f)
+```
+
+## Load parameters
+
+**Parameter File:** `{python} os.path.abspath(parameterfile)`
+
+```{python}
+from IPython.display import Markdown
+from tabulate import tabulate
+
+tab = []
+for k,v in cfg.items():
+  tab.append([k, v])
+
+Markdown(tabulate(tab,
+  headers=["Parameter", "Value"]
+))
+```
+
+# Load calibration
+
+```{python}
+camgroup = aniposelib.cameras.CameraGroup.load(cfg["calibration_file"])
+```
+
+**Calibration File:** `{python} os.path.join(cfg['base_path'], cfg['calibration_file'])`
+
+# Load in the points
+
+```{python}
+from label3d.triangulate import reorganize_sleap_csv
+
+data = []
+
+for fn in cfg['axes_files']:
+    fn = os.path.join(cfg['base_path'], cfg['axes_files_path'], fn)
+    data1 = pd.read_csv(fn)
+    data1 = reorganize_sleap_csv(data1)
+
+    data.append(data1)
+
+# join up the different camera data by concat across columns
+data = pd.concat(data, axis = 1, 
+                keys = camgroup.get_names(), 
+                names = ['camera', 'var'])
+```
+
+
+## Triangulate
+
+```{python}
+from label3d.triangulate import triangulate_points
+
+data3d = triangulate_points(camgroup, data)
+```
+
+
+Just the first few rows of the triangulated results.
+
+```{python}
+data3d.head()
+```
+
+
+## Error statistics
+
+```{python}
+ptsf = data3d.loc[:, (cfg["camera_names"], slice(None))].stack(level=0, future_stack=True).reset_index()
+```
+
+```{python}
+#| tbl-cap: Errors for each point in each camera
+
+ptsf[['point', 'camera', 'err']].sort_values("err", ascending=False)
+```
+
+These should all be less than a pixel or so.
+
+# Plot axes in 3D
+
+```{python}
+plt1 = data3d.xs("3D", axis=1, level="camera")
+plt1.index = plt1.index.droplevel('frame_idx')
+
+plt1 = plt1.loc[['origin', 'X', 'origin', 'Y', 'origin', 'Z'], :]
+plt1['axis'] = ['X', 'X', 'Y', 'Y', 'Z', 'Z']
+
+plt1 = plt1.reset_index()
+```
+
+
+```{python}
+p1 = px.line_3d(plt1, x='x', y='y', z='z', color='axis')
+p2 = px.scatter_3d(plt1, x='x', y='y', z='z', color='point')
+
+fig = go.Figure(p1.data + p2.data)
+fig.show()
+```
+
+# Turn points into axes matrix
+
+
+```{python}
+from label3d.rotate_axes import get_basis
+
+basis = get_basis(data3d.xs("3D", axis=1, level="camera"))
+```
+
+```{python}
+basis.loc[['x','y','z'],:]
+```
+
+```{python}
+from label3d.rotate_axes import rotate_axes
+
+data3dr = rotate_axes(data3d, basis)
+```
+
+
+```{python}
+#| fig-cap: "Diagnostic figure for the axes. We should have large numbers in the diagonal, indeally all positive, and close to zero everywhere else. If there are negative numbers in the diagonal, it means the original axes points were left handed and it flipped one axis."
+
+px.imshow(
+    data3dr.loc[:, ('3D', ['x', 'y', 'z'])]\
+        .xs('3D', axis=1)\
+        .xs(0, axis=0)\
+        .drop('origin')
+)
+```
+
+## Save the basis matrix
+
+
+```{python}
+basis.to_csv(os.path.join(cfg['base_path'], cfg['axes_output']))
+```
