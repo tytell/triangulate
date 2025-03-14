@@ -19,7 +19,7 @@ import os
 import numpy as np
 import pandas as pd
 import aniposelib
-import plotly.express as px
+import matplotlib.pyplot as plt
 ```
 
 
@@ -143,8 +143,17 @@ ptsf.groupby("point")["err"].describe().sort_values('mean', axis=0)
 ```{python}
 #| fig-cap: "Histograms of the reprojection errors for each camera"
 
-px.histogram(ptsf, x="err", facet_row="camera",
-        labels={"err": "Reprojection error (pixels)"})
+fig, axes = plt.subplots(2, 1, sharex=True, sharey=True)
+
+for ax1, cam1 in zip(axes, cfg["camera_names"]):
+  iscam = ptsf['camera'] == cam1
+  ax1.hist(ptsf.loc[iscam, 'err'], bins=20)
+  ax1.set_title(cam1)
+  ax1.set_ylabel('Number')
+
+axes[1].set_xlabel('Reprojection error (pixels)')
+
+plt.show()
 ```
 
 
@@ -173,11 +182,24 @@ err.loc[:, ('all', 'maxerr')] = err.max(axis=1)
 err.sort_values(by=[('all', 'maxerr')], ascending=False)
 ```
 
+# Rotate points to appropriate axes
+
+```{python}
+basis = pd.read_csv(os.path.join(cfg['base_path'], cfg['axes_output']))
+basis = basis.set_index(basis.columns[0])
+```
+
+```{python}
+from label3d.rotate_axes import rotate_axes
+
+rotate_axes(data3d, basis)
+```
+
 # Plot samples in 3D
 
 ```{python}
-ngoodframes = 2
-nbadframes = 10
+ngoodframes = 4
+nbadframes = 5
 ```
 
 ```{python}
@@ -199,15 +221,18 @@ showgoodframes = bestquart.sample(n = ngoodframes)
 
 
 ```{python}
-figs = []
+ncol = int(np.floor(np.sqrt(ngoodframes)))
+nrow = int(np.ceil(np.sqrt(ngoodframes)))
 
-for r in showgoodframes.iterrows():
+fig, axes = plt.subplots(nrow, ncol, subplot_kw={'projection':'3d'})
+
+for idx1, ax1 in zip(showgoodframes.index, axes.flat):
     print(r[0])
-    plt1 = data3d.loc[(*r[0], slice(None)), slice(None)].xs("3D", axis=1, level="camera").reset_index()
+    plt1 = data3d.loc[(idx1[0], idx1[1], slice(None)), slice(None)].xs("3D", axis=1, level="camera").reset_index()
 
-    fig1 = px.scatter_3d(plt1, x='x', y='y', z='z', color='point')
-    figs.append(fig1)
+    ax1.scatter(plt1['x'], plt1['y'], zs=plt1['z'])
+    # for j,rsub in plt1.iterrows():
+    #   ax1.text(rsub['x'], rsub['y'], rsub['z'], rsub['point'])
 
-subplots()
 ```
 

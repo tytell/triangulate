@@ -6,18 +6,21 @@ format:
 jupyter: python3
 ---
 
+```{python}
+#| tags: [parameters]
+
+parameterfile = "triangulate.yml"
+```
 
 ```{python}
 import os
 import numpy as np
 import pandas as pd
-import plotly.express as px
+import matplotlib.pyplot as plt
 ```
 
 
 ```{python}
-parameterfile = "triangulate.yml"
-
 import yaml
 with open(parameterfile, 'r') as f:
     cfg = yaml.safe_load(f)
@@ -78,8 +81,17 @@ ptsf.groupby("camera")["err"].describe()
 ```{python}
 #| fig-cap: "Histograms of the reprojection errors for each camera"
 
-px.histogram(ptsf, x="err", facet_row="camera",
-        labels={"err": "Reprojection error (pixels)"})
+fig, axes = plt.subplots(2, 1, sharex=True, sharey=True)
+
+for ax1, cam1 in zip(axes, cfg["camera_names"]):
+  iscam = ptsf['camera'] == cam1
+  ax1.hist(ptsf.loc[iscam, 'err'], bins=20)
+  ax1.set_title(cam1)
+  ax1.set_ylabel('Number')
+
+axes[1].set_xlabel('Reprojection error (pixels)')
+
+plt.show()
 ```
 
 ## Error statistics by location
@@ -94,13 +106,19 @@ binsize = 50
 xrng = np.max(ptsf["x"]) - np.min(ptsf["x"])
 yrng = np.max(ptsf["y"]) - np.min(ptsf["y"])
 
-nbinsx = np.floor(xrng / binsize)
-nbinsy = np.floor(yrng / binsize)
+nbinsx = int(np.floor(xrng / binsize))
+nbinsy = int(np.floor(yrng / binsize))
 
-fig = px.density_heatmap(ptsf, x="x", y="y", z="err", histfunc="avg", facet_row="camera",
-              nbinsx=int(nbinsx), nbinsy=int(nbinsy),
-              labels={"x": "x (pix)",
-                      "y": "y (pix)",
-                      "err": "Error (pix)"})
-fig.show()
+fig, axes = plt.subplots(2, 1, sharex=True, sharey=True)
+
+for ax1, cam1 in zip(axes, cfg["camera_names"]):
+  iscam = ptsf['camera'] == cam1
+  ax1.hist2d('x', 'y', weights='err', data=ptsf.loc[iscam, :], 
+          bins=[nbinsx, nbinsy])
+  ax1.set_title(cam1)
+  ax1.set_ylabel('y (pix)')
+
+axes[1].set_xlabel('x (pix)')
+
+plt.show()
 ```
