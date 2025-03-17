@@ -48,10 +48,14 @@ Markdown(tabulate(tab,
 # Load calibration
 
 ```{python}
-camgroup = aniposelib.cameras.CameraGroup.load(cfg["calibration_file"])
+from label3d.calibrate_charuco import get_triangulation_file_name
+
+calib_file = get_triangulation_file_name(cfg, cfg['calibration_file'], withdate=False)
+
+camgroup = aniposelib.cameras.CameraGroup.load(calib_file)
 ```
 
-**Calibration File:** `{python} os.path.join(cfg['base_path'], cfg['calibration_file'])`
+**Calibration File:** `{python} calib_file`
 
 # Load in the points
 
@@ -177,5 +181,9 @@ cb.set_label('Length')
 
 
 ```{python}
-basis.to_csv(os.path.join(cfg['base_path'], cfg['axes_output']))
+basis_file = get_triangulation_file_name(cfg, cfg['axes_output'], withdate=False)
+
+basis.to_csv(basis_file)
 ```
+
+**Axes output File:** `{python} basis_file`

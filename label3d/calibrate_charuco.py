@@ -5,6 +5,7 @@ import aniposelib
 import cv2
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 from .reproject import add_reprojected_points
 
@@ -61,11 +62,19 @@ def do_calibration(args, verbose=True, debug=True, ndebugimages=10):
 
     pts = pd.concat(pts, axis=1)
     
-    print(f"Saved calibration to {calib_file}")
-    camgroup.dump(calib_file)
-
     return pts, camgroup
 
+def get_triangulation_file_name(cfg, filename, withdate=True):
+    if withdate:
+        now = datetime.now().strftime('%Y-%m-%dT%H%M')
+
+        file = os.path.join(cfg['base_path'], \
+                f"{cfg['user']}-{cfg['project_name']}-{now}-{filename}")
+    else:
+        file = os.path.join(cfg['base_path'], \
+                f"{cfg['user']}-{cfg['project_name']}-{filename}")
+
+    return file
 
 def save_detected_points(args, pts):
     # save the detected points

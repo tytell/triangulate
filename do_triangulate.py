@@ -1,6 +1,7 @@
 import sys, os
 import logging
 import argparse
+from shutil import copyfile
 
 from qtpy.QtCore import Qt, QTimer
 from qtpy import QtWidgets
@@ -10,8 +11,24 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 from datetime import datetime
 
+from label3d.calibrate_charuco import get_triangulation_file_name
+
 import subprocess
 
+def render_notebook_and_rename(configfile, cfg, nbname0):
+    out = subprocess.run(f"quarto render {nbname0} --execute-param parameterfile:{configfile} --to pdf",
+                   shell=True, # capture_output=True,
+                   stderr=subprocess.STDOUT)
+    print(out.stdout)
+    if out.returncode != 0:
+        logging.error(f"Notebook {nbname0} had an error!")
+
+    basename, ext = os.path.splitext(nbname0)
+    nb_pdf = basename + '.pdf'
+    if os.path.exists(nb_pdf):
+        nb_pdf_final = get_triangulation_file_name(cfg, nb_pdf)
+        copyfile(nb_pdf, nb_pdf_final)
+        
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
@@ -47,20 +64,14 @@ def main():
     with open(configfile, 'r') as f:
         cfg = yaml.load(f)
 
-    out = subprocess.run(f"quarto render calibrate_charuco.qmd --execute-param parameterfile:{configfile} --to pdf",
-                   shell=True, # capture_output=True,
-                   stderr=subprocess.STDOUT)
-    print(out.stdout)
+    # calibration notebook    
+    render_notebook_and_rename(configfile, cfg, cfg['calibration_notebook'])
 
-    out = subprocess.run(f"quarto render triangulate_axes.qmd --execute-param parameterfile:{configfile} --to pdf",
-                   shell=True, # capture_output=True,
-                   stderr=subprocess.STDOUT)
-    print(out.stdout)
+    # axes notebook
+    render_notebook_and_rename(configfile, cfg, cfg['axes_notebook'])
 
-    out = subprocess.run(f"quarto render triangulate_axes.qmd --execute-param parameterfile:{configfile} --to pdf",
-                   shell=True, # capture_output=True,
-                   stderr=subprocess.STDOUT)
-    print(out.stdout)
+    # triangulation notebook
+    render_notebook_and_rename(configfile, cfg, cfg['triangulation_notebook'])
     
 
 

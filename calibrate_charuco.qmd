@@ -53,12 +53,20 @@ pts, camgroup = do_calibration(cfg)
 ```
 
 ```{python}
+from label3d.calibrate_charuco import get_triangulation_file_name
+
+calib_file = get_triangulation_file_name(cfg, cfg['calibration_file'], withdate=False)
+
+camgroup.dump(calib_file)
+```
+
+```{python}
 from label3d.reproject import add_reprojected_points
 
 pts = add_reprojected_points(pts, camgroup)
 ```
 
-**Calibration output File:** `{python} os.path.join(cfg['base_path'], cfg['calibration_file'])`
+**Calibration output File:** `{python} calib_file`
 
 
 # Show diagnositcs

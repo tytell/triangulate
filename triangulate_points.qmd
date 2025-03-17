@@ -50,11 +50,14 @@ Markdown(tabulate(tab,
 
 
 ```{python}
-camgroup = aniposelib.cameras.CameraGroup.load(cfg["calibration_file"])
+from label3d.calibrate_charuco import get_triangulation_file_name
+
+calib_file = get_triangulation_file_name(cfg, cfg['calibration_file'], withdate=False)
+
+camgroup = aniposelib.cameras.CameraGroup.load(calib_file)
 ```
 
-
-**Calibration File:** `{python} os.path.join(cfg['base_path'], cfg['calibration_file'])`
+**Calibration File:** `{python} calib_file`
 
 # Match points from trials
 
@@ -164,7 +167,7 @@ highcutoff = 50
 lowcutoff = 10
 ```
 
-Looking for points with errors > `{python} cutoff` pixels.
+Looking for points with errors > `{python} highcutoff` pixels.
 
 
 ```{python}
@@ -185,14 +188,16 @@ err.sort_values(by=[('all', 'maxerr')], ascending=False)
 # Rotate points to appropriate axes
 
 ```{python}
-basis = pd.read_csv(os.path.join(cfg['base_path'], cfg['axes_output']))
+basis_file = get_triangulation_file_name(cfg, cfg['axes_output'], withdate=False)
+
+basis = pd.read_csv(basis_file)
 basis = basis.set_index(basis.columns[0])
 ```
 
 ```{python}
 from label3d.rotate_axes import rotate_axes
 
-rotate_axes(data3d, basis)
+data3d = rotate_axes(data3d, basis)
 ```
 
 # Plot samples in 3D
@@ -220,19 +225,28 @@ showgoodframes = bestquart.sample(n = ngoodframes)
 ```
 
 
-```{python}
+For later debugging:
+
 ncol = int(np.floor(np.sqrt(ngoodframes)))
 nrow = int(np.ceil(np.sqrt(ngoodframes)))
 
 fig, axes = plt.subplots(nrow, ncol, subplot_kw={'projection':'3d'})
 
 for idx1, ax1 in zip(showgoodframes.index, axes.flat):
-    print(r[0])
     plt1 = data3d.loc[(idx1[0], idx1[1], slice(None)), slice(None)].xs("3D", axis=1, level="camera").reset_index()
 
     ax1.scatter(plt1['x'], plt1['y'], zs=plt1['z'])
-    # for j,rsub in plt1.iterrows():
-    #   ax1.text(rsub['x'], rsub['y'], rsub['z'], rsub['point'])
 
+# Save data
+
+```{python}
+data3d_file = get_triangulation_file_name(cfg, cfg['output_file'])
+
+ptsf = data3d.loc[:, (cfg["camera_names"], slice(None))].stack(level=0, future_stack=True).reset_index()
+
+ptsf.to_csv(data3d_file)
 ```
 
+**Points output File:** `{python} data3d_file`
+
+```
