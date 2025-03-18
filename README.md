@@ -13,6 +13,10 @@ You should be able to install the necessary packages with the [env-triangulate.y
 $ conda env create -f env-triangulate.yml
 ``
 
+### Install quarto
+
+Follow instructions on the [Quarto website](https://quarto.org/docs/get-started/). Make sure you also have a working version of LaTeX (see details on the [Quarto website](https://quarto.org/docs/output-formats/pdf-basics.html#prerequisites) if you don't know what that means).
+
 ## 1. Modify the YAML configuration file
 
 Copy [triangulate.yml](./triangulate.yml) to your working directory. These are the parameters in the configuration file that should be modified. Modify the others only if you know what you're doing!
