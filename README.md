@@ -1,6 +1,6 @@
 # Scripts for calibration and 3D triangulation
 
-Wrappers and diagnostics for calibrating using a ChaRuCo board and triangulating points in 3D using multiple cameras. Assumes that points have been tracked and exported from (sleap.ai)[https://sleap.ai/].
+Wrappers and diagnostics for calibrating using a ChaRuCo board and triangulating points in 3D using multiple cameras. Assumes that points have been tracked and exported from [sleap.ai](https://sleap.ai/).
 All the actual analysis is through [aniposelib](https://github.com/lambdaloop/aniposelib).
 
 You should have a set of axes calibration videos or images, in which you take an image of an object that defines the origin and X, Y, and Z axes from each camera. Use the [axes.json](./axes.json) skeleton to identify the axes points in Sleap. Then just export the points from Sleap. (There's no need to train a network or perform any inference for axes points)
