@@ -1,17 +1,22 @@
 name: triangulate
 channels:
   - conda-forge
-  - nvidia 
-  - sleap/label/dev
-  - sleap
   - defaults
 dependencies:
   - python=3.9
   - pip
   - pandas
   - opencv
+  - jupyter
+  - papermill
+  - tabulate
+  - ipython
+  - matplotlib
+  - qt=5.15
+  - pyside2=5.15
+  - pyqtgraph
   - qtpy
+  - pyyaml
   - ruamel.yaml
-  - sleap==1.4.1
   - pip:
       - aniposelib
