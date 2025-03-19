@@ -8,3 +8,8 @@ raw data
 
 *.csv
 *.pdf
+*.quarto_ipynb
+*.aux
+*.log
+*.tex
+
