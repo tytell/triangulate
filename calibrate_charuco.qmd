@@ -9,7 +9,7 @@ jupyter: python3
 ```{python}
 #| tags: [parameters]
 
-parameterfile = "triangulate.yml"
+parameterfile = r"template-config-file.yml"
 ```
 
 ```{python}
@@ -28,7 +28,7 @@ with open(parameterfile, 'r') as f:
 
 ## Load parameters
 
-**Parameter File:** `{python} os.path.abspath(parameterfile)`
+**Parameter File:** `{python} os.path.abspath(parameterfile).replace(os.sep, '/')`
 
 ```{python}
 from IPython.display import Markdown
@@ -66,7 +66,7 @@ from label3d.reproject import add_reprojected_points
 pts = add_reprojected_points(pts, camgroup)
 ```
 
-**Calibration output File:** `{python} calib_file`
+**Calibration output File:** `{python} calib_file.replace(os.sep, '/')`
 
 
 # Show diagnositcs

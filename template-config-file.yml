@@ -1,5 +1,7 @@
 # Triangulation setup
 # 2025-03-13T16:38
+
+# important: Use forward slashes (/) for all paths, even on Windows machines
 base_path: /Users/etytel01/Documents/2025/triangulate
 project_name: triangulate
 user: Eric
