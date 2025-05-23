@@ -10,7 +10,7 @@ jupyter: python3
 ```{python}
 #| tags: [parameters]
 
-parameterfile = "triangulate.yml"
+parameterfile = r"template-config-file.yml"
 ```
 
 
@@ -29,9 +29,13 @@ with open(parameterfile, 'r') as f:
     cfg = yaml.safe_load(f)
 ```
 
+```{python}
+os.path.abspath(parameterfile).replace(os.sep, '/')
+```
+
 ## Load parameters
 
-**Parameter File:** `{python} os.path.abspath(parameterfile)`
+**Parameter File:** `{python} os.path.abspath(parameterfile).replace(os.sep, '/')`
 
 ```{python}
 from IPython.display import Markdown
@@ -57,7 +61,7 @@ calib_file = get_triangulation_file_name(cfg, cfg['calibration_file'], withdate=
 camgroup = aniposelib.cameras.CameraGroup.load(calib_file)
 ```
 
-**Calibration File:** `{python} calib_file`
+**Calibration File:** `{python} calib_file.replace(os.sep, '/')`
 
 # Match points from trials
 
@@ -240,13 +244,18 @@ for idx1, ax1 in zip(showgoodframes.index, axes.flat):
 # Save data
 
 ```{python}
+from copy import copy
+
 data3d_file = get_triangulation_file_name(cfg, cfg['output_file'])
 
-ptsf = data3d.loc[:, (cfg["camera_names"], slice(None))].stack(level=0, future_stack=True).reset_index()
+ptsf = copy(data3d)
+ptsf.columns = ['_'.join(c1) for c1 in data3d.columns]
+
+ptsf = ptsf.reset_index()
 
 ptsf.to_csv(data3d_file)
 ```
 
-**Points output File:** `{python} data3d_file`
+**Points output File:** `{python} data3d_file.replace(os.sep, '/')`
 
 ```

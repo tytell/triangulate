@@ -57,8 +57,16 @@ def main():
     else:
         configfile = args.config
 
+    if configfile is None or len(configfile) == 0:
+        logging.info('No config file. Ending')
+        return
+
     logging.debug(f"{configfile=}")
 
+    if not os.path.exists(configfile):
+        logging.error(f"Config file {configfile} not found.")
+        return
+    
     yaml=YAML()   # default, if not specfied, is 'rt' (round-trip)
 
     with open(configfile, 'r') as f:

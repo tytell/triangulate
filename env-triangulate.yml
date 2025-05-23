@@ -3,24 +3,20 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - jupyter_client=8.6.3=pyhd8ed1ab_1
-  - jupyter_core=5.7.2=pyh31011fe_1
-  - matplotlib-base=3.8.4=py39h15359f4_2
-  - matplotlib-inline=0.1.7=pyhd8ed1ab_1
-  - nbclient=0.10.2=py39hca03da5_0
-  - nbformat=5.10.4=py39hca03da5_0
-  - opencv=4.11.0=headless_py39h45abdc4_2
-  - pandas=2.2.3=py39hc5ad87a_1
-  - plotly=5.24.1=py39h33ce5c2_1
-  - py-opencv=4.11.0=headless_py39h419b526_2
-  - pyside2=5.15.15=py39heabe5ed_0
-  - qt-main=5.15.15=h67564f6_2
-  - qtpy=2.4.3=pyhd8ed1ab_0
-  - ruamel.yaml=0.18.10=py39hf3bc14e_0
-  - scipy=1.9.0=py39h14896cb_0
+  - python=3.9
+  - pip
+  - pandas
+  - opencv
+  - jupyter
+  - papermill
+  - tabulate
+  - ipython
+  - matplotlib
+  - qt=5.15
+  - pyside2=5.15
+  - pyqtgraph
+  - qtpy
+  - pyyaml
+  - ruamel.yaml
   - pip:
-      - aniposelib==0.7.0
-      - numba==0.60.0
-      - numpy==1.24.4
-      - opencv-contrib-python==4.11.0.86
-      - sleap==1.4.1
+      - aniposelib

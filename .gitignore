@@ -8,6 +8,11 @@ raw data
 
 *.csv
 *.pdf
+*.quarto_ipynb
+*.aux
+*.log
+*.tex
+
 .Rproj.user
 .Rhistory
 triangulate.Rproj

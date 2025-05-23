@@ -10,7 +10,7 @@ jupyter: python3
 ```{python}
 #| tags: [parameters]
 
-parameterfile = "triangulate.yml"
+parameterfile = r"template-config-file.yml"
 ```
 
 ```{python}
@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 import aniposelib
 import matplotlib.pyplot as plt
+import re
 ```
 
 
@@ -30,7 +31,7 @@ with open(parameterfile, 'r') as f:
 
 ## Load parameters
 
-**Parameter File:** `{python} os.path.abspath(parameterfile)`
+**Parameter File:** `{python} os.path.abspath(parameterfile).replace(os.sep, '/')`
 
 ```{python}
 from IPython.display import Markdown
@@ -55,7 +56,7 @@ calib_file = get_triangulation_file_name(cfg, cfg['calibration_file'], withdate=
 camgroup = aniposelib.cameras.CameraGroup.load(calib_file)
 ```
 
-**Calibration File:** `{python} calib_file`
+**Calibration File:** `{python} calib_file.replace(os.sep, '/')`
 
 # Load in the points
 
@@ -186,4 +187,4 @@ basis_file = get_triangulation_file_name(cfg, cfg['axes_output'], withdate=False
 basis.to_csv(basis_file)
 ```
 
-**Axes output File:** `{python} basis_file`
+**Axes output File:** `{python} basis_file.replace(os.sep, '/')`
