@@ -8,3 +8,6 @@ raw data
 
 *.csv
 *.pdf
+.Rproj.user
+.Rhistory
+triangulate.Rproj

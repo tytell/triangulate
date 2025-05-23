@@ -65,14 +65,20 @@ def do_calibration(args, verbose=True, debug=True, ndebugimages=10):
     return pts, camgroup
 
 def get_triangulation_file_name(cfg, filename, withdate=True):
+    parts = []
+    parts.append(cfg['project_name'])
+    if cfg['user'] is not None and \
+            len(cfg['user']) > 0:
+        parts.append(cfg['user'])
+    
     if withdate:
         now = datetime.now().strftime('%Y-%m-%dT%H%M')
 
-        file = os.path.join(cfg['base_path'], \
-                f"{cfg['user']}-{cfg['project_name']}-{now}-{filename}")
-    else:
-        file = os.path.join(cfg['base_path'], \
-                f"{cfg['user']}-{cfg['project_name']}-{filename}")
+        parts.append(now)
+    
+    parts.append(filename)
+
+    file = '-'.join(parts)
 
     return file
 
