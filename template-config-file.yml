@@ -41,18 +41,15 @@ points_files_path: raw data
 ## it's also an input file for the triangulation steps
 calibration_file: calibration.toml
 
-## this is where the 3D points end up
-output_file: points3d.csv
-
 ## this outputs the axes in 3D
 ## it's also an input file for the point triangulation step
 axes_output: axes.csv
 
+## this is where the 3D points end up
+output_file: points3d.csv
+
 ## this outputs the calibration points, for debug purposes
 board_points_file: charuco_points.csv
-
-## this keeps track of any changes in files that would require recalibration
-dependencies_file: last_run.toml
 
 # Internal parameters
 
