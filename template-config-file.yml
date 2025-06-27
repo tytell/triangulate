@@ -2,11 +2,14 @@
 # 2025-03-13T16:38
 
 # important: Use forward slashes (/) for all paths, even on Windows machines
+# all paths below are specified relative to the base path
 base_path: /Users/etytel01/Documents/2025/triangulate
 project_name: triangulate
 user: Eric
 
-# Charuco board parameters
+# Calibration setup
+
+## Charuco board parameters
 nsquaresx: 6
 nsquaresy: 6
 square_length: 24.33
@@ -14,9 +17,7 @@ marker_length: 17.0
 marker_bits: 5
 dict_size: 50
 
-# Calibration setup
-calibration_notebook: calibrate_charuco.qmd
-
+## Calibration videos and camera details
 calibration_videos:
 - raw data/CharucoPostCalib_LateralOrtho.mp4
 - raw data/CharucoPostCalib_LateralOffAxis.mp4
@@ -24,23 +25,39 @@ camera_names:
 - ortho
 - offaxis
 debug: true
-board_points_file: charuco_points.csv
-
-calibration_file: calibration.toml
 
 # Axes setup
-axes_notebook: triangulate_axes.qmd
-
-axes_files_path: raw data
 axes_files:
-- labels.000_AxesPostCalib_LateralOrtho.analysis.csv
-- labels.001_AxesPostCalib_LateralOffAxis.analysis.csv
-axes_output: axes.csv
+- raw data/labels.000_AxesPostCalib_LateralOrtho.analysis.csv
+- raw data/labels.001_AxesPostCalib_LateralOffAxis.analysis.csv
 
 # Video trials for triangulation
+points_files_list: points_files_list.csv
+points_files_path: raw data
+
+# Output files
+
+## this is where the calibration is stored
+## it's also an input file for the triangulation steps
+calibration_file: calibration.toml
+
+## this is where the 3D points end up
+output_file: points3d.csv
+
+## this outputs the axes in 3D
+## it's also an input file for the point triangulation step
+axes_output: axes.csv
+
+## this outputs the calibration points, for debug purposes
+board_points_file: charuco_points.csv
+
+## this keeps track of any changes in files that would require recalibration
+dependencies_file: last_run.toml
+
+# Internal parameters
+
+## Don't change these unless you know what you're doing
+calibration_notebook: calibrate_charuco.qmd
+axes_notebook: triangulate_axes.qmd
 triangulation_notebook: triangulate_points.qmd
 
-points_files_path: raw data
-points_files_list: points_files_list.csv
-
-output_file: points3d.csv
