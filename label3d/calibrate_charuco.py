@@ -1,6 +1,4 @@
 import os
-import argparse
-import yaml
 import aniposelib
 import cv2
 import numpy as np
