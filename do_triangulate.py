@@ -38,17 +38,20 @@ def check_config_file(configfile):
     except ParserError as p:
         logging.error(f"Error parsing config file {configfile}!")
         logging.error(p)
-        return None
+        return None, None
     
     # check base path
     if not os.path.exists(cfg['base_path']):
         logging.error(f"Could not access 'base_path' {cfg['base_path']}")
-        return None
+        return None, None
 
-    def mtime(fn, bp = cfg['base_path']):
+    def mtime(fn, bp = cfg['base_path'], is_input=True):
         fullfn = os.path.join(bp, fn)
         if not os.path.exists(fullfn):
-            return datetime.max       # largest available date
+            if is_input:
+                return datetime.max       # largest available date
+            else:
+                return datetime.min     # smallest date if output file doesn't exist
         else:
             return datetime.fromtimestamp(os.path.getmtime(fullfn))
 
@@ -58,22 +61,22 @@ def check_config_file(configfile):
             fnall = os.path.join(cfg['base_path'], fn)
             if not os.path.exists(fnall):
                 logging.error(f"Could not access file {i+1} in {flist}.\n  Full path: {fnall}")
-                return None
+                return None, None
     
     # check the points file
     pfl = os.path.join(cfg['base_path'], cfg['points_files_list'])
     if not os.path.exists(pfl):
-        logging.error(f"Could not access the 'points_files_list':\n  Full path: {fpl}")
-        return None
+        logging.error(f"Could not access the 'points_files_list':\n  Full path: {pfl}")
+        return None, None
 
     # get file modification dates
     filedates = {'configfile': [mtime(configfile, bp='')],
-                'calibration_file': [mtime(cfg['calibration_file'])],
+                'calibration_file': [mtime(cfg['calibration_file'], is_input=False)],
                 'points_files_list': [mtime(cfg['calibration_file'])],
                 'calibration_videos': [mtime(f) for f in cfg['calibration_videos']],
                 'axes_files': [mtime(f) for f in cfg['axes_files']],
-                'axes_output': [mtime(cfg['axes_output'])],
-                'output_file': [mtime(cfg['output_file'])],
+                'axes_output': [mtime(cfg['axes_output'], is_input=False)],
+                'output_file': [mtime(cfg['output_file'], is_input=False)],
                 'calibration_notebook': [mtime(cfg['calibration_notebook'], bp='')],
                 'axes_notebook': [mtime(cfg['axes_notebook'], bp='')],
                 'triangulation_notebook': [mtime(cfg['triangulation_notebook'], bp='')]
@@ -88,7 +91,7 @@ def check_config_file(configfile):
             fn = os.path.join(cfg['base_path'], cfg['points_files_path'], f)
             if not os.path.exists(fn):
                 logging.error(f"Could not access the points file from row {idx+1}, column {c+1}:\n  Full path: {fn}")
-                return None
+                return None, None
             points_infiles_dates.append(mtime(fn, bp=''))
 
         fn = os.path.join(cfg['base_path'], cfg['points_files_path'], row['Output'])
@@ -128,13 +131,15 @@ def render_notebook_and_rename(configfile, cfg, nbname0):
     print(out.stdout)
     if out.returncode != 0:
         logging.error(f"Notebook {nbname0} had an error!")
-
+        return False
+    
     basename, ext = os.path.splitext(nbname0)
     nb_pdf = basename + '.pdf'
     if os.path.exists(nb_pdf):
         nb_pdf_final = get_triangulation_file_name(cfg, nb_pdf)
         copyfile(nb_pdf, nb_pdf_final)
-        
+
+    return True    
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
@@ -183,19 +188,23 @@ def main():
     if args.force or out_of_date(filedates,
                    infiles=['configfile', 'calibration_videos', 'calibration_notebook'],
                    outfiles=['calibration_file']):
-        render_notebook_and_rename(configfile, cfg, cfg['calibration_notebook'])
+        logging.debug(f"{cfg['calibration_notebook']=}")
+        if not render_notebook_and_rename(configfile, cfg, cfg['calibration_notebook']):
+            return
 
     # axes notebook
     if args.force or out_of_date(filedates,
                    infiles=['configfile', 'calibration_file', 'axes_files'],
                    outfiles=['axes_output']):
-        render_notebook_and_rename(configfile, cfg, cfg['axes_notebook'])
+        if not render_notebook_and_rename(configfile, cfg, cfg['axes_notebook']):
+            return
 
     # triangulation notebook
     if args.force or out_of_date(filedates,
                    infiles=['configfile', 'calibration_file', 'points_files_in'],
                    outfiles=['output_file', 'points_files_out']):
-        render_notebook_and_rename(configfile, cfg, cfg['triangulation_notebook'])
+        if not render_notebook_and_rename(configfile, cfg, cfg['triangulation_notebook']):
+            return
     
 
 

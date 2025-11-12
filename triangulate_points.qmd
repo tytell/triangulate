@@ -70,8 +70,10 @@ points_files = pd.read_csv(os.path.join(cfg['base_path'], cfg["points_files_list
 ```
 
 Double check that the number of cameras from the calibration matches up with the number of cameras in the points file.
+
+In the points file, there should be a column for trial number, columns for each camera, and a column for each output file.
 ```{python}
-assert points_files.shape[1] == len(camgroup.get_names())+1, \
+assert points_files.shape[1] == len(camgroup.get_names())+2, \
     f"Number of cameras from calibration ({len(camgroup.get_names())}) doesn't match number of cameras in points file ({points_files.shape[1]-1})"
 ```
 
@@ -94,7 +96,7 @@ for idx, row in points_files.iterrows():
     trials.append(row.iloc[0])
 
     camdata = []
-    for f in row.iloc[1:]:
+    for f in row.iloc[1:-1]:
         fn = os.path.join(cfg['base_path'], cfg['points_files_path'], f)
         data1 = pd.read_csv(fn)
         data1 = reorganize_sleap_csv(data1)

@@ -66,7 +66,7 @@ from label3d.triangulate import reorganize_sleap_csv
 data = []
 
 for fn in cfg['axes_files']:
-    fn = os.path.join(cfg['base_path'], cfg['axes_files_path'], fn)
+    fn = os.path.join(cfg['base_path'], fn)
     data1 = pd.read_csv(fn)
     data1 = reorganize_sleap_csv(data1)
 
@@ -110,6 +110,11 @@ ptsf[['point', 'camera', 'err']].sort_values("err", ascending=False)
 These should all be less than a pixel or so.
 
 # Plot axes in 3D
+
+```{python}
+plt1 = data3d.xs("3D", axis=1, level="camera")
+plt1.head()
+```
 
 ```{python}
 plt1 = data3d.xs("3D", axis=1, level="camera")
