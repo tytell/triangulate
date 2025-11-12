@@ -4,6 +4,11 @@ import cv2
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from copy import deepcopy
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 from .reproject import add_reprojected_points
 
@@ -19,6 +24,8 @@ def VideoCapture(*args, **kwargs):
 def do_calibration(args, verbose=True, debug=True, ndebugimages=10):
     ## Run the calibration if necessary
     calib_file = os.path.join(args['base_path'], args['calibration_file'])
+
+    logger.debug('Starting do_calibration')
 
     if verbose > 0:
         if not os.path.exists(calib_file):
@@ -53,9 +60,23 @@ def do_calibration(args, verbose=True, debug=True, ndebugimages=10):
             fr1 = pts1['framenum'][1]
             row_idx = pd.MultiIndex.from_product([[fr1], pts1['ids'][:,0]], 
                                                 names=['frame', 'id'])
-            df_cam.append(pd.DataFrame(data = np.squeeze(pts1['corners']), 
+            
+            if pts1['corners'].ndim == 3 and pts1['corners'].shape[1] == 1:
+                c1 = np.squeeze(pts1['corners'], axis=1)
+                # NB - if we just run squeeze by itself, and pts1['coners']
+                # has shape (1, 1, 2), we get c1 with shape (2,), which
+                # will cause an error
+            else:
+                c1 = pts1['corners']
+
+            logger.debug(f'{fr1=}, corners shape: {c1.shape}') 
+
+            corner_df = pd.DataFrame(data = c1, 
                                     index=row_idx, 
-                                    columns=col_idx))
+                                    columns=col_idx)
+
+            df_cam.append(corner_df)
+
         pts.append(pd.concat(df_cam))
 
     pts = pd.concat(pts, axis=1)
