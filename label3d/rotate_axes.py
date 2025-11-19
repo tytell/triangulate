@@ -16,11 +16,18 @@ import fnmatch
 from copy import copy, deepcopy
 from warnings import warn
 
+import logging
 
-def get_basis(axesdata, order_axes='length', make_right_handed=True):
-    origin = axesdata.iloc[0]
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-    axesdata0 = axesdata.iloc[1:] - origin.values
+def get_basis(axesdata, order_axes='length', make_right_handed=True,
+              origin_name='origin', point_names=['X', 'Y', 'Z']):
+    
+    origin = axesdata.loc[(slice(None), origin_name), :]
+    
+    axesdata0 = axesdata.loc[(slice(None), point_names), :]
+    axesdata0 = axesdata0  - origin.values
 
     axesdata0.index = pd.Index(['x', 'y', 'z'])
     axesdata0.columns = pd.Index(['xorig', 'yorig', 'zorig'])
@@ -50,8 +57,8 @@ def get_basis(axesdata, order_axes='length', make_right_handed=True):
     R = R.reindex(columns=R.columns.sort_values())
 
     R.index = pd.Index(['x', 'y', 'z'])
-    origindf = origin.to_frame().T
-    origindf.index = pd.Index(['origin'])
+    origindf = origin.copy()
+    origindf.index = origindf.index.droplevel(0)
     origindf.columns = R.columns
 
     return pd.concat((origindf, R))
