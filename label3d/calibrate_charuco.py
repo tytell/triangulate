@@ -7,6 +7,8 @@ from datetime import datetime
 from copy import deepcopy
 import logging
 
+from label3d.triangulate import get_base_path
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -23,7 +25,9 @@ def VideoCapture(*args, **kwargs):
 
 def do_calibration(args, verbose=True, debug=True, ndebugimages=10):
     ## Run the calibration if necessary
-    calib_file = os.path.join(args['base_path'], args['calibration_file'])
+    base_path = get_base_path(args)
+
+    calib_file = os.path.join(base_path, args['calibration_file'])
 
     logger.debug('Starting do_calibration')
 
@@ -44,7 +48,7 @@ def do_calibration(args, verbose=True, debug=True, ndebugimages=10):
         f'Number of calibration videos is different than number of camera names'
     camgroup = aniposelib.cameras.CameraGroup.from_names(args['camera_names'])
 
-    vidnames = [[os.path.join(args['base_path'], vid)] for vid in args['calibration_videos']]
+    vidnames = [[os.path.join(base_path, vid)] for vid in args['calibration_videos']]
     err, rows = camgroup.calibrate_videos(vidnames, board, 
                             init_intrinsics=True, init_extrinsics=True, 
                             verbose=verbose > 0)
@@ -130,7 +134,7 @@ def generate_debug_images(args, pts):
 
     # generate images showing the detected points
     for vid, rows1 in zip(args['calibration_videos'], rows):
-        vid = os.path.join(args['base_path'], vid)
+        vid = os.path.join(get_base_path(args), vid)
 
         pn, fn = os.path.split(vid)
         fn, _ = os.path.splitext(fn)

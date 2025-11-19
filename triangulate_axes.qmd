@@ -10,7 +10,7 @@ jupyter: python3
 ```{python}
 #| tags: [parameters]
 
-parameterfile = r"template-config-file.yml"
+parameterfile = r'/Volumes/TytellLab$/NewData/BluegillVPumpkinseed/SteadySwimming_Kinematics/testTriangulation/BGvsPS_config.yml' #"template-config-file.yml"
 ```
 
 ```{python}
@@ -62,11 +62,13 @@ camgroup = aniposelib.cameras.CameraGroup.load(calib_file)
 
 ```{python}
 from label3d.triangulate import reorganize_sleap_csv
+from label3d.triangulate import get_base_path
 
 data = []
+base_path = get_base_path(cfg)
 
 for fn in cfg['axes_files']:
-    fn = os.path.join(cfg['base_path'], fn)
+    fn = os.path.join(base_path, fn)
     data1 = pd.read_csv(fn)
     data1 = reorganize_sleap_csv(data1)
 
@@ -149,6 +151,13 @@ ax.set_zlabel('z')
 
 # Turn points into axes matrix
 
+
+```{python}
+axesdata = data3d.xs("3D", axis=1, level="camera")
+# axesdata = axesdata.reset_index()
+
+axesdata.loc[(slice(None), 'origin'), :].index.droplevel([0])
+```
 
 ```{python}
 from label3d.rotate_axes import get_basis

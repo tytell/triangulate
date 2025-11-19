@@ -1,4 +1,5 @@
 import os
+import sys
 import aniposelib
 import argparse
 import yaml
@@ -15,6 +16,18 @@ import fnmatch
 
 from copy import copy, deepcopy
 from warnings import warn
+
+def get_base_path(cfg):
+    if sys.platform == 'win32':
+        root_path = cfg.get('windows_root', '')
+    elif sys.platform == 'darwin':
+        root_path = cfg.get('mac_root', '')
+    else:
+        root_path = ''
+
+    base_path = os.path.join(root_path, cfg['base_path'])
+
+    return base_path
 
 def reorganize_sleap_csv(data):
 

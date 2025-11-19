@@ -20,6 +20,8 @@ import numpy as np
 import pandas as pd
 import aniposelib
 import matplotlib.pyplot as plt
+
+from label3d.triangulate import get_base_path
 ```
 
 
@@ -66,7 +68,8 @@ camgroup = aniposelib.cameras.CameraGroup.load(calib_file)
 # Match points from trials
 
 ```{python}
-points_files = pd.read_csv(os.path.join(cfg['base_path'], cfg["points_files_list"]))
+points_files = pd.read_csv(os.path.join(get_base_path(cfg),
+              cfg["points_files_list"]))
 ```
 
 Double check that the number of cameras from the calibration matches up with the number of cameras in the points file.
@@ -88,6 +91,8 @@ points_files
 ```{python}
 from label3d.triangulate import reorganize_sleap_csv
 
+base_path = get_base_path(cfg)
+
 data = []
 trials = []
 for idx, row in points_files.iterrows():
@@ -97,7 +102,7 @@ for idx, row in points_files.iterrows():
 
     camdata = []
     for f in row.iloc[1:-1]:
-        fn = os.path.join(cfg['base_path'], cfg['points_files_path'], f)
+        fn = os.path.join(base_path, cfg['points_files_path'], f)
         data1 = pd.read_csv(fn)
         data1 = reorganize_sleap_csv(data1)
         camdata.append(data1)

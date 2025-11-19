@@ -9,7 +9,7 @@ jupyter: python3
 ```{python parameterfile}
 #| tags: [parameters]
 
-parameterfile = # r"template-config-file.yml"
+parameterfile = r"template-config-file.yml"
 ```
 
 ```{python imports}
