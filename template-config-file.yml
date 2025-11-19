@@ -3,6 +3,12 @@
 
 # important: Use forward slashes (/) for all paths, even on Windows machines
 # all paths below are specified relative to the base path
+
+# these allow the script to run on different operating systems
+windows_root: R:/
+mac_root: /Volumes/
+
+# base path will be appended to the root path above
 base_path: /Users/etytel01/Documents/2025/triangulate
 project_name: triangulate
 user: Eric
