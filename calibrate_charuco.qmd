@@ -50,7 +50,7 @@ Markdown(tabulate(tab,
 from label3d.calibrate_charuco import do_calibration
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 pts, camgroup = do_calibration(cfg)
 ```
@@ -92,7 +92,8 @@ ptsf.groupby("camera")["err"].describe()
 ```{python error histogram}
 #| fig-cap: "Histograms of the reprojection errors for each camera"
 
-fig, axes = plt.subplots(2, 1, sharex=True, sharey=True)
+ncam = len(cfg["camera_names"])
+fig, axes = plt.subplots(ncam, 1, sharex=True, sharey=True)
 
 for ax1, cam1 in zip(axes, cfg["camera_names"]):
   iscam = ptsf['camera'] == cam1
@@ -100,7 +101,7 @@ for ax1, cam1 in zip(axes, cfg["camera_names"]):
   ax1.set_title(cam1)
   ax1.set_ylabel('Number')
 
-axes[1].set_xlabel('Reprojection error (pixels)')
+axes[ncam-1].set_xlabel('Reprojection error (pixels)')
 
 plt.show()
 ```
@@ -120,7 +121,7 @@ yrng = np.max(ptsf["y"]) - np.min(ptsf["y"])
 nbinsx = int(np.floor(xrng / binsize))
 nbinsy = int(np.floor(yrng / binsize))
 
-fig, axes = plt.subplots(2, 1, sharex=True, sharey=True)
+fig, axes = plt.subplots(ncam, 1, sharex=True, sharey=True)
 
 for ax1, cam1 in zip(axes, cfg["camera_names"]):
   iscam = (ptsf['camera'] == cam1) & (ptsf['err'].notna())
@@ -131,7 +132,7 @@ for ax1, cam1 in zip(axes, cfg["camera_names"]):
   ax1.set_title(cam1)
   ax1.set_ylabel('y (pix)')
 
-axes[1].set_xlabel('x (pix)')
+axes[ncam-1].set_xlabel('x (pix)')
 
 plt.show()
 ```

@@ -10,7 +10,7 @@ jupyter: python3
 ```{python}
 #| tags: [parameters]
 
-parameterfile = r'/Volumes/TytellLab$/NewData/BluegillVPumpkinseed/SteadySwimming_Kinematics/testTriangulation/BGvsPS_config.yml' #"template-config-file.yml"
+parameterfile = r"template-config-file.yml"
 ```
 
 ```{python}
